@@ -240,9 +240,84 @@
             }, 1200);
         }
 
-        startMicDetection();
+        async function startMicDetection() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false,
+      },
+    });
+
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    // IMPORTANT: resume context (Safari/Chrome sometimes start suspended)
+    if (audioContext.state === "suspended") {
+      await audioContext.resume();
+    }
+
+    const source = audioContext.createMediaStreamSource(stream);
+    const analyser = audioContext.createAnalyser();
+    analyser.fftSize = 2048;
+
+    source.connect(analyser);
+
+    const timeData = new Uint8Array(analyser.fftSize);
+
+    let blown = false;
+    let lastTrigger = 0;
+
+    function detectBlow() {
+      analyser.getByteTimeDomainData(timeData);
+
+      // Calculate RMS (volume) + ZCR (noisiness)
+      let sumSquares = 0;
+      let zeroCrossings = 0;
+
+      let prev = (timeData[0] - 128) / 128;
+
+      for (let i = 1; i < timeData.length; i++) {
+        const v = (timeData[i] - 128) / 128;
+        sumSquares += v * v;
+
+        if ((v >= 0 && prev < 0) || (v < 0 && prev >= 0)) zeroCrossings++;
+        prev = v;
+      }
+
+      const rms = Math.sqrt(sumSquares / timeData.length);
+      const zcr = zeroCrossings / timeData.length;
+
+      // Tune these if needed:
+      const RMS_THRESHOLD = 0.08;  // how loud the blow is
+      const ZCR_THRESHOLD = 0.07;  // how "noise-like" it is
+      const COOLDOWN_MS = 1500;
+
+      const now = performance.now();
+
+      if (!blown && now - lastTrigger > COOLDOWN_MS && rms > RMS_THRESHOLD && zcr > ZCR_THRESHOLD) {
+        blown = true;
+        lastTrigger = now;
+        blowOutCandles();
+
+        // Optional: stop mic after success
+        stream.getTracks().forEach(t => t.stop());
+        audioContext.close();
+        return;
+      }
+
+      requestAnimationFrame(detectBlow);
+    }
+
+    detectBlow();
+  } catch (err) {
+    console.error("Mic access error:", err);
+  }
+}
+
     </script>
 
 </body>
 
 </html>
+
