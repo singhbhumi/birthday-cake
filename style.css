@@ -26,10 +26,13 @@ body {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding-bottom: 500px;
+  
 }
 .cake-container {
-    padding-right: 500px;
+    display: flex;
+    justify-content: center;
+    width: 100%
+    padding-right: 0;
 }
 .cake {
   position: relative;
@@ -6861,3 +6864,4 @@ body {
     width: 5px;
   }
 }
+
