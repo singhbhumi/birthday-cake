@@ -1,47 +1,59 @@
+/* Don't apply background to every element */
 * {
-    font-family: "Pixelify Sans", sans-serif;
-    background-color: #feefe5;
+  box-sizing: border-box;
+  font-family: "Pixelify Sans", sans-serif;
 }
+
 body {
   margin: 0;
-  padding: 0;
-  font-family: 'Pixelify Sans', sans-serif;
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-
+  background-color: #feefe5;
+  overflow: hidden; /* keeps confetti/cake clean */
 }
-
-
-#birthdayText {
-  font-size: 3rem;
-  margin-bottom: 20px;
-  color: #333;
-}
-
 
 .container {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding-bottom: 500px;
+  gap: 16px;
+  padding: 20px;
 }
+
+/* Keep text centered */
+#birthdayText {
+  color: #333;
+}
+
+/* Remove the big offsets that break centering */
 .cake-container {
-    padding-right: 500px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 0;
+  margin: 0;
 }
+
 .cake {
   position: relative;
-  animation: cake 1s infinite;
-  -webkit-animation: cake 1s infinite;
-  -moz-animation: cake 1s infinite;
-
-  -o-animation: cake 1s infinite;
   transform: scale(8.5);
-    z-index: 1; /* optional */
+  z-index: 1;
   overflow: visible; /* allow candles to "escape" */
+  animation: cake 1s infinite;
+}
 
+/* (Optional) If you want the title sizes from your HTML */
+#mainTitle {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+#subTitle {
+  font-size: 18px;
+  color: #555;
 }
 
 @keyframes cake {
@@ -6861,3 +6873,4 @@ body {
     width: 5px;
   }
 }
+
