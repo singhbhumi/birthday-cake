@@ -33,8 +33,6 @@
       </div>
     </div>
 
-    <canvas id="confettiCanvas"></canas>
-
     <script>
       // Read URL params
       const params = new URLSearchParams(window.location.search);
@@ -49,68 +47,6 @@
       `;
 
       const cake = document.getElementById("cake");
-
-      // ===== CONFETTI =====
-const confettiCanvas = document.getElementById("confettiCanvas");
-const ctx = confettiCanvas.getContext("2d");
-
-function resizeConfetti() {
-  const dpr = window.devicePixelRatio || 1;
-  confettiCanvas.width = Math.floor(window.innerWidth * dpr);
-  confettiCanvas.height = Math.floor(window.innerHeight * dpr);
-  confettiCanvas.style.width = window.innerWidth + "px";
-  confettiCanvas.style.height = window.innerHeight + "px";
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-}
-window.addEventListener("resize", resizeConfetti);
-resizeConfetti();
-
-let confettiPieces = [];
-
-function fireConfetti(duration = 2200) {
-  const start = performance.now();
-  const colors = ["#ff4d4d", "#ffd24d", "#4dff88", "#4dd2ff", "#b84dff", "#ffffff"];
-
-  for (let i = 0; i < 180; i++) {
-    confettiPieces.push({
-      x: window.innerWidth / 2 + (Math.random() - 0.5) * 200,
-      y: window.innerHeight / 3,
-      vx: (Math.random() - 0.5) * 10,
-      vy: Math.random() * -10 - 6,
-      g: 0.3,
-      size: 4 + Math.random() * 6,
-      rot: Math.random() * Math.PI,
-      vr: (Math.random() - 0.5) * 0.2,
-      color: colors[Math.floor(Math.random() * colors.length)],
-    });
-  }
-
-  function draw(now) {
-    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-
-    confettiPieces.forEach((p) => {
-      p.vy += p.g;
-      p.x += p.vx;
-      p.y += p.vy;
-      p.rot += p.vr;
-
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.rot);
-      ctx.fillStyle = p.color;
-      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
-      ctx.restore();
-    });
-
-    confettiPieces = confettiPieces.filter(p => p.y < window.innerHeight + 60);
-
-    if (now - start < duration || confettiPieces.length) {
-      requestAnimationFrame(draw);
-    }
-  }
-
-  requestAnimationFrame(draw);
-}
 
       const colors = [
         "green-candle",
@@ -211,7 +147,6 @@ function fireConfetti(duration = 2200) {
       }
 
       function blowOutCandles() {
-        fireConfetti();
         const candles = document.querySelectorAll(".candle");
         candles.forEach((candle) => {
           const delay = Math.random() * 1000;
@@ -235,4 +170,3 @@ function fireConfetti(duration = 2200) {
     </script>
   </body>
 </html>
-
