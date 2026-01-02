@@ -218,45 +218,43 @@
     const timeData = new Uint8Array(analyser.fftSize);
 
     let blown = false;
-    let lastTrigger = 0;
+let lastTrigger = 0;
 
-    function detectBlow() {
-      analyser.getByteTimeDomainData(timeData);
+let baseline = 0.01; // adaptive background noise level
+const alpha = 0.05;  // smoothing
 
-      // Calculate RMS (volume) + ZCR (noisiness)
-      let sumSquares = 0;
-      let zeroCrossings = 0;
+function detectBlow() {
+  analyser.getByteTimeDomainData(timeData);
 
-      let prev = (timeData[0] - 128) / 128;
+  // RMS volume
+  let sumSquares = 0;
+  for (let i = 0; i < timeData.length; i++) {
+    const v = (timeData[i] - 128) / 128;
+    sumSquares += v * v;
+  }
+  const rms = Math.sqrt(sumSquares / timeData.length);
 
-      for (let i = 1; i < timeData.length; i++) {
-        const v = (timeData[i] - 128) / 128;
-        sumSquares += v * v;
+  // adapt baseline slowly (tracks room noise)
+  baseline = baseline * (1 - alpha) + rms * alpha;
 
-        if ((v >= 0 && prev < 0) || (v < 0 && prev >= 0)) zeroCrossings++;
-        prev = v;
-      }
+  const now = performance.now();
 
-      const rms = Math.sqrt(sumSquares / timeData.length);
-      const zcr = zeroCrossings / timeData.length;
+  // Trigger when volume spikes above baseline
+  const SPIKE_MULTIPLIER = 2.5; // lower = more sensitive (try 2.0–3.5)
+  const MIN_RMS = 0.02;         // minimum absolute loudness
+  const COOLDOWN_MS = 1200;
 
-      // Tune these if needed:
-      const RMS_THRESHOLD = 0.08;  // how loud the blow is
-      const ZCR_THRESHOLD = 0.07;  // how "noise-like" it is
-      const COOLDOWN_MS = 1500;
+  if (!blown && now - lastTrigger > COOLDOWN_MS && rms > Math.max(MIN_RMS, baseline * SPIKE_MULTIPLIER)) {
+    blown = true;
+    lastTrigger = now;
+    blowOutCandles();
 
-      const now = performance.now();
+    // stop mic after success
+    stream.getTracks().forEach(t => t.stop());
+    audioContext.close();
+    return;
+  }
 
-      if (!blown && now - lastTrigger > COOLDOWN_MS && rms > RMS_THRESHOLD && zcr > ZCR_THRESHOLD) {
-        blown = true;
-        lastTrigger = now;
-        blowOutCandles();
-
-        // Optional: stop mic after success
-        stream.getTracks().forEach(t => t.stop());
-        audioContext.close();
-        return;
-      }
 
       requestAnimationFrame(detectBlow);
     }
@@ -277,6 +275,7 @@ startBtn.addEventListener("click", () => {
 </body>
 
 </html>
+
 
 
 
