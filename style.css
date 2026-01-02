@@ -6865,3 +6865,23 @@ body {
   }
 }
 
+/* ===== Confetti ===== */
+.confetti {
+  position: fixed;
+  top: -10px;
+  width: 8px;
+  height: 14px;
+  opacity: 0.9;
+  pointer-events: none;
+  animation: fall linear forwards;
+  z-index: 9999;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(110vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+
