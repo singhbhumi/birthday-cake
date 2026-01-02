@@ -38,11 +38,11 @@ body {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding-bottom: 500px;
+    
 }
 
 .cake-container {
-    padding-right: 500px;
+    padding-right: 0;
 }
 
 .cake-container,
@@ -6922,4 +6922,5 @@ body {
     }
 
 }
+
 
