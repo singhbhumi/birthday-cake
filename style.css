@@ -40,11 +40,12 @@ body {
 
 .cake {
   position: relative;
-  transform: scale(8.5);
+  transform: translateY(90px) scale(7);
   z-index: 1;
-  overflow: visible; /* allow candles to "escape" */
+  overflow: visible;
   animation: cake 1s infinite;
 }
+
 
 /* (Optional) If you want the title sizes from your HTML */
 #mainTitle {
@@ -6873,4 +6874,5 @@ body {
     width: 5px;
   }
 }
+
 
