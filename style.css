@@ -15,7 +15,7 @@ body {
 
 }
 
-#confetti {
+#confettiCanvas {
     position: fixed;
     top: 0;
     left: 0;
@@ -6922,3 +6922,4 @@ body {
     }
 
 }
+
