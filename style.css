@@ -6,9 +6,7 @@
 body {
     background-color: #feefe5;
     margin: 0;
-    padding: 0;
-    font-family: 'Pixelify Sans', sans-serif;
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -42,14 +40,14 @@ body {
 }
 
 .cake-container {
-    padding-right: 0;
+    padding-right: 0;          /* this was pushing your cake */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: auto;
 }
 
-.cake-container,
-.cake {
-    position: relative;
-    z-index: 1;
-}
+
 
 .cake {
     position: relative;
@@ -59,6 +57,10 @@ body {
 
     -o-animation: cake 1s infinite;
     transform: scale(8.5);
+    transform-origin: center center;
+    width: 120px;
+    height: 80px;
+    
     z-index: 1;
     /* optional */
     overflow: visible;
@@ -6922,5 +6924,6 @@ body {
     }
 
 }
+
 
 
