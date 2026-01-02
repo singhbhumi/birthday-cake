@@ -6864,29 +6864,3 @@ body {
     width: 5px;
   }
 }
-
-#confetti-layer {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 9999;
-}
-
-/* Confetti pieces */
-.confetti {
-  position: absolute;
-  top: -10px;
-  width: 8px;
-  height: 14px;
-  opacity: 0.9;
-  animation: fall linear forwards;
-}
-
-@keyframes fall {
-  to {
-    transform: translateY(110vh) rotate(720deg);
-    opacity: 0;
-  }
-}
-
