@@ -22,8 +22,8 @@ body {
     width: 100vw;
     height: 100vh;
     pointer-events: none;
-    background: transparent;
     z-index: 9999;
+    display: block;
 }
 
 #birthdayText {
@@ -6920,4 +6920,5 @@ body {
         height: 5px;
         width: 5px;
     }
+
 }
