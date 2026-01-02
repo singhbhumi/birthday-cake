@@ -4,37 +4,123 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Birthday Cake 🎂</title>
+
+    <!-- Keep yours if you want -->
     <link rel="stylesheet" href="style.css" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap"
       rel="stylesheet"
     />
+
     <style>
+      /* --- Center everything --- */
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        font-family: "Pixelify Sans", sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        overflow: hidden;
+      }
+
+      .container {
+        position: relative;
+        width: min(520px, 92vw);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        text-align: center;
+        padding: 18px 14px;
+      }
+
       #mainTitle {
         font-size: 32px;
-        font-family: 'Pixelify Sans', sans-serif;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
       }
 
       #subTitle {
         font-size: 18px;
-        font-family: 'Pixelify Sans', sans-serif;
         color: #555;
+      }
+
+      /* Cake wrapper stays centered */
+      .cake-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+      }
+
+      /* Confetti canvas */
+      #confettiCanvas {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 9999;
+      }
+
+      /* Mic overlay button (only shown when needed) */
+      #micOverlay {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.35);
+        z-index: 99999;
+      }
+
+      #micOverlay button {
+        font-family: "Pixelify Sans", sans-serif;
+        font-size: 20px;
+        padding: 14px 18px;
+        border: 0;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+
+      /* Optional: if your cake has absolute candles */
+      .cake {
+        position: relative;
+      }
+
+      /* Example "blown" effect if your CSS doesn't already handle it */
+      .candle.blown {
+        opacity: 0.25;
+        filter: grayscale(1);
       }
     </style>
   </head>
+
   <body>
+    <canvas id="confettiCanvas"></canvas>
+
+    <div id="micOverlay">
+      <button id="enableMicBtn">Enable Mic 🎙️</button>
+    </div>
+
     <div class="container">
       <div id="birthdayText"></div>
+
       <div class="cake-container">
         <div class="cake" id="cake"></div>
       </div>
     </div>
 
     <script>
-      // Read URL params
+      // ---------- URL Params ----------
       const params = new URLSearchParams(window.location.search);
       const name = params.get("name") || "Friend";
       let candleCount = parseInt(params.get("candles")) || 4;
@@ -48,16 +134,13 @@
 
       const cake = document.getElementById("cake");
 
-      const colors = [
-        "green-candle",
-        "purple-candle",
-        "blue-candle",
-        "yellow-candle",
-      ];
+      // ---------- Candle creation (yours, lightly adjusted) ----------
+      const colors = ["green-candle", "purple-candle", "blue-candle", "yellow-candle"];
       const CAKE_VISUAL_WIDTH = 35;
 
       function createCandles(count) {
         cake.innerHTML = "";
+
         const CANDLE_VISUAL_WIDTH = 2;
         const availableWidth = CAKE_VISUAL_WIDTH;
         const candlesPerRow = 6;
@@ -67,15 +150,14 @@
         for (let i = 0; i < count; i++) {
           const candle = document.createElement("div");
           candle.classList.add("candle");
+
           const colorClass = colors[Math.floor(Math.random() * colors.length)];
           candle.classList.add(colorClass);
 
           const row = Math.floor(i / candlesPerRow);
           const col = i % candlesPerRow;
-          const totalCandlesInRow = Math.min(
-            candlesPerRow,
-            count - row * candlesPerRow
-          );
+
+          const totalCandlesInRow = Math.min(candlesPerRow, count - row * candlesPerRow);
           const rowSpacing = availableWidth / (totalCandlesInRow + 1);
 
           const leftBase = rowSpacing * (col + 1) - CANDLE_VISUAL_WIDTH / 2 + 5;
@@ -91,81 +173,227 @@
 
       createCandles(candleCount);
 
-      // === Microphone / Blow Detection ===
+      // ---------- Confetti ----------
+      const confettiCanvas = document.getElementById("confettiCanvas");
+      const ctx = confettiCanvas.getContext("2d");
+
+      function resizeConfetti() {
+        confettiCanvas.width = window.innerWidth;
+        confettiCanvas.height = window.innerHeight;
+      }
+      window.addEventListener("resize", resizeConfetti);
+      resizeConfetti();
+
+      let confettiPieces = [];
+      let confettiRunning = false;
+      let confettiStopAt = 0;
+
+      function startConfetti(durationMs = 1800, amount = 160) {
+        const now = performance.now();
+        confettiStopAt = now + durationMs;
+
+        // add pieces
+        for (let i = 0; i < amount; i++) {
+          confettiPieces.push({
+            x: Math.random() * confettiCanvas.width,
+            y: -20 - Math.random() * confettiCanvas.height * 0.3,
+            w: 6 + Math.random() * 6,
+            h: 6 + Math.random() * 10,
+            vx: -2 + Math.random() * 4,
+            vy: 3 + Math.random() * 6,
+            rot: Math.random() * Math.PI,
+            vr: -0.2 + Math.random() * 0.4,
+            g: 0.06 + Math.random() * 0.08,
+            alpha: 1
+          });
+        }
+
+        if (!confettiRunning) {
+          confettiRunning = true;
+          requestAnimationFrame(confettiLoop);
+        }
+      }
+
+      function confettiLoop(t) {
+        ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+
+        for (let i = confettiPieces.length - 1; i >= 0; i--) {
+          const p = confettiPieces[i];
+          p.vy += p.g;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.rot += p.vr;
+
+          // fade out near end
+          if (t > confettiStopAt) p.alpha -= 0.03;
+
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, p.alpha);
+
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot);
+
+          // random-ish colors without hardcoding a palette
+          ctx.fillStyle = `hsl(${Math.floor(Math.random() * 360)}, 90%, 60%)`;
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+
+          ctx.restore();
+
+          if (p.y > confettiCanvas.height + 50 || p.alpha <= 0) {
+            confettiPieces.splice(i, 1);
+          }
+        }
+
+        if (t < confettiStopAt || confettiPieces.length > 0) {
+          requestAnimationFrame(confettiLoop);
+        } else {
+          confettiRunning = false;
+        }
+      }
+
+      // ---------- Blow Detection (Improved) ----------
+      let audioContext, analyser, micStream;
+      let alreadyBlown = false;
+
       async function startMicDetection() {
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-          });
-          const audioContext = new (window.AudioContext ||
-            window.webkitAudioContext)();
-          const source = audioContext.createMediaStreamSource(stream);
-          const analyser = audioContext.createAnalyser();
-          analyser.fftSize = 512;
+          micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+          // If browser blocks autoplay, AudioContext may be "suspended"
+          if (audioContext.state === "suspended") {
+            showMicOverlay();
+            return;
+          }
+
+          const source = audioContext.createMediaStreamSource(micStream);
+
+          analyser = audioContext.createAnalyser();
+          analyser.fftSize = 2048;
 
           source.connect(analyser);
 
-          const dataArray = new Uint8Array(analyser.frequencyBinCount);
+          // noise floor calibration
+          const freqData = new Uint8Array(analyser.frequencyBinCount);
+          const timeData = new Float32Array(analyser.fftSize);
 
-          let blown = false;
+          let noiseRms = 0;
+          let noiseCount = 0;
 
-          function detectBlow() {
-            analyser.getByteFrequencyData(dataArray);
+          // Calibrate for ~0.8 seconds
+          const calibrateUntil = performance.now() + 800;
 
-            let highFreqSum = 0;
-            let lowFreqSum = 0;
+          function loop() {
+            if (!analyser) return;
 
-            const midpoint = dataArray.length / 2;
+            // Time-domain RMS (volume)
+            analyser.getFloatTimeDomainData(timeData);
+            let sumSq = 0;
+            for (let i = 0; i < timeData.length; i++) sumSq += timeData[i] * timeData[i];
+            const rms = Math.sqrt(sumSq / timeData.length);
 
-            for (let i = 0; i < dataArray.length; i++) {
-              if (i < midpoint) {
-                lowFreqSum += dataArray[i];
-              } else {
-                highFreqSum += dataArray[i];
-              }
+            // Frequency-domain low vs high energy
+            analyser.getByteFrequencyData(freqData);
+
+            const n = freqData.length;
+            const lowEnd = Math.floor(n * 0.18); // low band
+            const highStart = Math.floor(n * 0.55); // high band
+
+            let lowSum = 0;
+            let highSum = 0;
+
+            for (let i = 0; i < lowEnd; i++) lowSum += freqData[i];
+            for (let i = highStart; i < n; i++) highSum += freqData[i];
+
+            const lowAvg = lowSum / Math.max(1, lowEnd);
+            const highAvg = highSum / Math.max(1, n - highStart);
+
+            // Calibration
+            const now = performance.now();
+            if (now < calibrateUntil) {
+              noiseRms += rms;
+              noiseCount++;
+              requestAnimationFrame(loop);
+              return;
             }
 
-            const highAvg = highFreqSum / (dataArray.length / 2);
-            const lowAvg = lowFreqSum / (dataArray.length / 2);
+            const baseline = (noiseCount ? noiseRms / noiseCount : 0.01);
 
-            const ratio = highAvg / (lowAvg + 1);
+            // Blow rules:
+            // 1) Volume jumps above baseline by a factor
+            // 2) Low frequencies dominate highs (blowing is very "woosh" low/broad)
+            // 3) Not already blown
+            const loudEnough = rms > baseline * 3.2 && rms > 0.03; // tweak if needed
+            const lowDominant = lowAvg > highAvg * 1.25; // tweak if needed
 
-            const BLOW_RATIO_THRESHOLD = 0.5;
-
-            if (ratio > BLOW_RATIO_THRESHOLD && !blown) {
-              blown = true;
+            if (!alreadyBlown && loudEnough && lowDominant) {
+              alreadyBlown = true;
               blowOutCandles();
             }
 
-            requestAnimationFrame(detectBlow);
+            requestAnimationFrame(loop);
           }
 
-          detectBlow();
+          loop();
         } catch (err) {
           console.error("Mic access error:", err);
+          showMicOverlay(true); // show message if blocked/denied
         }
+      }
+
+      function showMicOverlay(denied = false) {
+        const overlay = document.getElementById("micOverlay");
+        overlay.style.display = "flex";
+        const btn = document.getElementById("enableMicBtn");
+        btn.textContent = denied ? "Mic blocked — Click to try again" : "Enable Mic 🎙️";
+
+        btn.onclick = async () => {
+          overlay.style.display = "none";
+          try {
+            if (!micStream) {
+              micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            }
+            if (!audioContext) {
+              audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            await audioContext.resume();
+          } catch (e) {
+            console.error(e);
+          }
+          // restart clean
+          alreadyBlown = false;
+          startMicDetection();
+        };
       }
 
       function blowOutCandles() {
         const candles = document.querySelectorAll(".candle");
+
         candles.forEach((candle) => {
-          const delay = Math.random() * 1000;
-          setTimeout(() => {
-            colors.forEach((color) => {
-              if (candle.classList.contains(color)) {
-                candle.classList.add("blown");
-              }
-            });
-          }, delay);
+          const delay = Math.random() * 900;
+          setTimeout(() => candle.classList.add("blown"), delay);
         });
 
-        // Update subTitle after short delay
+        // Confetti 🎉
+        startConfetti(2000, 220);
+
+        // Update subtitle
         setTimeout(() => {
           const subTitle = document.getElementById("subTitle");
-          subTitle.textContent = `Yayy! Wishing you the happiest birthday ever!! 🎉`;
+          subTitle.textContent = "Yayy! Wishing you the happiest birthday ever!! 🎉";
+        }, 900);
+
+        // Stop mic after blowing (optional, but cleaner)
+        setTimeout(() => {
+          try {
+            if (micStream) micStream.getTracks().forEach((t) => t.stop());
+            if (audioContext) audioContext.close();
+          } catch {}
         }, 1200);
       }
 
+      // Start mic detection
       startMicDetection();
     </script>
   </body>
